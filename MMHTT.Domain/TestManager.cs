@@ -17,19 +17,19 @@ namespace MMHTT.Domain
 
     public static TestManager Parse(Settings settings, ILog log = null)
     {
+      SettingsManager.LoadAndTest(settings);
+
       var result = new TestManager()
       {
         _cancellation = new CancellationTokenSource(),
-        _log = log ?? new NullLog(),
+        _log = log ?? new ConsoleLog(),
         _settings = settings
       };
 
-      if (result._settings == null) { throw new ArgumentNullException("cannot work without settings"); }
-
       result._connectionManager = new ConnectionManager(result._log);
 
-      var agentGenerator = new AgentManager(result._log, result._cancellation.Token, result._connectionManager);
-      result._agents = agentGenerator.GenerateAgents(settings);
+      var agentManager = new AgentManager(result._log, result._cancellation.Token, result._connectionManager);
+      result._agents = agentManager.GenerateAgents(settings);
 
       return result;
     }

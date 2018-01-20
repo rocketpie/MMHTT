@@ -3,24 +3,29 @@
   public class Settings
   {
     /// <summary>
-    /// number of simulated 'users' that concurrently access the tested resource
+    /// providing a file will override all RequestVaritions with the one's found in the file
     /// </summary>
-    public int AgentCount { get; set; }
+    public string RequestVariationsFile { get; set; }
+    public RequestVariation[] RequestVariations { get; set; }
 
     /// <summary>
-    /// same as AgentCount ?
+    /// request templates (razor?) will be rendered with a requestVariation
     /// </summary>
-    public int MaxConcurrentConnections { get; set; }
+    public Template[] Templates { get; set; }
+
+    /// <summary>
+    /// optional agent behaviour control
+    /// </summary>
+    public AgentBehaviour[] AgentBehaviour { get; set; }
 
     /// <summary>
     /// Stop Test afer reaching this number of Requests across all agents
     /// </summary>
     public int MaxTotalRequests { get; set; }
 
-    public AgentBehaviour[] AgentBehaviour { get; set; }
-
-    public RequestVariation[] RequestVariations { get; set; }
-
-    public DynamicContent[] DynamicContent { get; set; }
+    /// <summary>
+    /// IOC. type? assembly? ??? 
+    /// </summary>
+    public string Renderer { get; set; }
   }
 }

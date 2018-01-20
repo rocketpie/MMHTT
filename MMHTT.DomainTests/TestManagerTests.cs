@@ -1,23 +1,27 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using MMHTT.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace MMHTT.Domain.Tests
 {
   [TestClass()]
   public class TestManagerTests
-  {
-
-
-
-    [TestMethod()]
-    public void TestManagerTest()
+  {         
+    static Settings _insufficientSettingsTest = new Settings()
     {
-      Assert.Fail();
+      Templates = new Template[] { },
+      RequestVariations = new RequestVariation[]
+     {
+        new RequestVariation() { }
+     }
+    };
+
+    /// <summary>
+    /// details tested by SettingsManagerTest
+    /// </summary>
+    [TestMethod()]
+    [ExpectedException(typeof(SettingsException))]
+    public void TestManagerParseTestInsufficientSettings_ShouldThrowSettingsException()
+    {
+      var target = TestManager.Parse(_insufficientSettingsTest);
     }
 
     [TestMethod()]

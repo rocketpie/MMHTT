@@ -41,12 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Agent.cs" />
+    <Compile Include="Helper\ConsoleLog.cs" />
     <Compile Include="Helper\ThresholdDispatcher.cs" />
     <Compile Include="Managers\AgentManager.cs" />
     <Compile Include="Managers\ConnectionManager.cs" />
     <Compile Include="Helper\Connection.cs" />
     <Compile Include="Helper\ContextLog.cs" />
-    <Compile Include="Helper\NullLog.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Managers\SettingsManager.cs" />
     <Compile Include="TestManager.cs" />

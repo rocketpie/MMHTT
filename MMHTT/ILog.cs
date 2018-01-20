@@ -5,5 +5,6 @@ namespace MMHTT
   public interface ILog
   {
     void Error(string message, Exception ex = null);
+    void Warn(string message);
   }
 }

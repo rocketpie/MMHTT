@@ -52,13 +52,20 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Helper\ThresholdDispatcherTests.cs" />
+    <Compile Include="Managers\SettingsManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <None Include="TestFiles\GetUser.request" />
+    <None Include="TestFiles\RequestVariations" />
     <Compile Include="TestManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MMHTT.Domain\MMHTT.Domain.csproj">
       <Project>{7160D99E-89E7-47F6-B13C-ADE907B65F53}</Project>
       <Name>MMHTT.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MMHTT\MMHTT.csproj">
+      <Project>{b526e831-2c8d-4145-820f-4c4d8ee4064b}</Project>
+      <Name>MMHTT</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

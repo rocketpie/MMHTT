@@ -13,9 +13,8 @@ namespace MMHTT.Domain
       _context = context;
     }
 
-    public void Error(string message, Exception ex = null)
-    {
-      _log.Error($"({_context}) {message}", ex);
-    }
+    public void Error(string message, Exception ex = null) => _log.Error($"({_context}) {message}", ex);
+
+    public void Warn(string message) => _log.Warn($"({_context}) {message}");
   }
 }

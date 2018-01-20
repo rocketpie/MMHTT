@@ -20,7 +20,7 @@ namespace MMHTT.Domain.Helper.Tests
     {
       List<int> testData = new List<int>() { 1, 2, 3 };
 
-      var dispatcher = new ThresholdDispatcher<int>(testData.ToArray(), _ => 1);
+      var dispatcher = new ThresholdDispatcher<int>(new ConsoleLog(), testData.ToArray(), _ => 1);
 
       for (int i = 0; i < TEST_LENGTH && testData.Count > 0; i++)
       {
@@ -39,7 +39,7 @@ namespace MMHTT.Domain.Helper.Tests
     {
       List<int> testData = new List<int>() { 1 };
 
-      var dispatcher = new ThresholdDispatcher<int>(testData.ToArray(), _ => 1);
+      var dispatcher = new ThresholdDispatcher<int>(new ConsoleLog(), testData.ToArray(), _ => 1);
 
       for (int i = 0; i < TEST_LENGTH && testData.Count > 0; i++)
       {
@@ -62,7 +62,7 @@ namespace MMHTT.Domain.Helper.Tests
       testData.Add(1, 1);  // expect this to be dispatched  1/11
       testData.Add(2, 10); // expect this to be dispatched 10/11
 
-      var dispatcher = new ThresholdDispatcher<int>(testData.Keys.ToArray(), i => testData[i]);
+      var dispatcher = new ThresholdDispatcher<int>(new ConsoleLog(), testData.Keys.ToArray(), i => testData[i]);
 
       var result = new Dictionary<int, int>();
       result[1] = 0;

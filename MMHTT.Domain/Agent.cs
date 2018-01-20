@@ -30,7 +30,7 @@ namespace MMHTT.Domain
       _token = token;
       _connection = connection;
       _behaviour = behaviour;
-      _variationDispatcher = new ThresholdDispatcher<RequestVariation>(variations, v => v.Weight);
+      _variationDispatcher = new ThresholdDispatcher<RequestVariation>(_log, variations, v => v.Weight);
       _renderer = renderer;
 
       var interval = (1000 / behaviour.MaxRequestsPerSecond);

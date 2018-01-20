@@ -4,8 +4,7 @@ using System.Collections.Generic;
 namespace MMHTT.Domain.Managers
 {
   internal class ConnectionManager
-  {
-    int _agentCount;
+  {                  
     List<Connection> _connections = new List<Connection>();
     private ILog _log;
 
