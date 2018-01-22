@@ -1,5 +1,8 @@
 ﻿using MMHTT.Configuration;
 using MMHTT.Domain.Helper;
+using System;
+using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Timers;
 
@@ -48,15 +51,66 @@ namespace MMHTT.Domain
 
     private void _signal_Elapsed(object sender, ElapsedEventArgs e)
     {
-      if (_token.IsCancellationRequested) { return; }
+      if (_token.IsCancellationRequested)
+      {
+        _signal.Stop();
+        return;
+      }
 
-      var request = _renderer.Render(_requestDispatcher.Dispatch());
+      var requestBase = _renderer.Render(_requestDispatcher.Dispatch());
+
+      if (requestBase.Method == null)
+      {
+        _log.Error($"cannot send request: HTTP Method not set");
+        return;
+      }
+
+      // also validate method content?
+
+      if (!Uri.TryCreate(requestBase.Model.Endpoint, UriKind.Absolute, out Uri endpoint))
+      {
+        _log.Error($"cannot send request: Endpoint is not a valid Uri");
+        return;
+      }
+
+      var request = new HttpRequestMessage(new HttpMethod(requestBase.Method), endpoint);
+      request.Content = new StringContent(requestBase.Result);
+
+      if (requestBase.Headers.AllKeys.Any())
+      {
+        string currentHeaderName = "";
+        try
+        {
+          foreach (var header in requestBase.Headers.AllKeys)
+          {
+            currentHeaderName = header;
+            request.Headers.Add(header, requestBase.Headers[header]);
+          }
+        }
+        catch (Exception ex)
+        {
+          _log.Error($"cannot set Header {{ \"Name\":\"${currentHeaderName}\", \"Value\":\"{requestBase.Headers?[currentHeaderName]}\" }}: {ex.Message}", ex);
+          return;
+        }
+      }
 
       _connection.UseClient((connectionLog, client) =>
       {
-        var responseTask = client.SendAsync(request);
+        try
+        {
+          using (HttpResponseMessage response = client.SendAsync(request).Result)
+          {
+            using (HttpContent content = response.Content)
+            {
+              var responseText = content.ReadAsStringAsync().Result;
+            }
+          }
+        }
+        catch (Exception ex)
+        {
+          _log.Error($"http response error: {ex.Message}", ex);
+        }
       });
     }
-
   }
 }

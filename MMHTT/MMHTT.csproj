@@ -31,9 +31,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Configuration\AgentBehaviour.cs" />
+    <Compile Include="HttpRequestBase.cs" />
     <Compile Include="ILog.cs" />
     <Compile Include="IRequestRenderer.cs" />
-    <Compile Include="Configuration\RequestVariation.cs" />
+    <Compile Include="Configuration\RequestDefinition.cs" />
     <Compile Include="Configuration\KeyValue.cs" />
     <Compile Include="Configuration\Config.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

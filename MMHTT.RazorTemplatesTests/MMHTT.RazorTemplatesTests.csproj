@@ -59,6 +59,10 @@
       <Project>{E4255C8E-BD08-43E5-B158-614101F03B1D}</Project>
       <Name>MMHTT.RazorTemplates</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MMHTT\MMHTT.csproj">
+      <Project>{B526E831-2C8D-4145-820F-4C4D8EE4064B}</Project>
+      <Name>MMHTT</Name>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

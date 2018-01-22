@@ -1,4 +1,5 @@
 ﻿using Microsoft.CSharp;
+using MMHTT.Configuration;
 using System;
 using System.CodeDom.Compiler;
 using System.IO;
@@ -8,19 +9,17 @@ using System.Web.Razor;
 
 namespace MMHTT.RazorTemplates
 {
-  public class RazorRenderer
+  public class RazorRenderer : IRequestRenderer
   {
-    static string _generatingAssemblyPath = typeof(RazorRenderer).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\");
+    /// <summary>
+    /// to include in razor includes
+    /// </summary>
+    static readonly string TEMPLATE_BASE_ASSEMBLY = typeof(HttpRequestBase).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\");
+    static readonly string TEMPLATE_ASSEMBLY = typeof(HttpRequestTemplateBase).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\");
     const string GENERATED_NAMESPACE = "RazorOutput";
     const string GENERATED_TEMPLATE_TYPE = "Template";
 
-    private RazorRenderer() { }
-
-    /// <summary>
-    /// compiler
-    /// </summary>
-    CSharpCodeProvider _codeProvider = new CSharpCodeProvider();
-    TemplateBase _templateInstance;
+    public Type TemplateType { get; private set; }
 
     /// <summary>
     /// generate Razor assembly
@@ -28,12 +27,10 @@ namespace MMHTT.RazorTemplates
     /// <param name="template"></param>
     public static RazorRenderer Parse(string template)
     {
-      var result = new RazorRenderer();
-
       // Set up the hosting environment         
       // a. Use the C# language (you could detect this based on the file extension if you want to)
       RazorEngineHost host = new RazorEngineHost(new CSharpRazorCodeLanguage());
-      host.DefaultBaseClass = typeof(TemplateBase).FullName;
+      host.DefaultBaseClass = typeof(HttpRequestTemplateBase).FullName;
 
       // c. Set the output namespace and type name
       host.DefaultNamespace = GENERATED_NAMESPACE;
@@ -44,7 +41,8 @@ namespace MMHTT.RazorTemplates
       host.NamespaceImports.Add("Microsoft.CSharp");
 
       CompilerParameters compilerParameters = new CompilerParameters();
-      compilerParameters.ReferencedAssemblies.Add(_generatingAssemblyPath); // TemplateBase
+      compilerParameters.ReferencedAssemblies.Add(TEMPLATE_BASE_ASSEMBLY);
+      compilerParameters.ReferencedAssemblies.Add(TEMPLATE_ASSEMBLY);
       compilerParameters.ReferencedAssemblies.Add("System.dll");
       compilerParameters.ReferencedAssemblies.Add("System.Core.dll");
       compilerParameters.ReferencedAssemblies.Add("Microsoft.CSharp.dll");   // dynamic support
@@ -62,7 +60,8 @@ namespace MMHTT.RazorTemplates
         razorResult = engine.GenerateCode(rdr);
       }
 
-      CompilerResults results = result._codeProvider.CompileAssemblyFromDom(compilerParameters, razorResult.GeneratedCode);
+      var codeProvider = new CSharpCodeProvider();
+      CompilerResults results = codeProvider.CompileAssemblyFromDom(compilerParameters, razorResult.GeneratedCode);
 
       if (results.Errors.HasErrors)
       {
@@ -78,39 +77,37 @@ namespace MMHTT.RazorTemplates
       Assembly generatedAssembly = Assembly.LoadFrom(outputAssemblyFile);
       if (generatedAssembly == null)
       {
-        throw new Exception("cannot load template assembly (generatedAssembly is null)");
+        throw new Exception($"cannot load template assembly ({nameof(generatedAssembly)} is null)");
       }
 
       // Get the template type
       Type templateType = generatedAssembly.GetType($"{GENERATED_NAMESPACE}.{GENERATED_TEMPLATE_TYPE}");
       if (templateType == null)
       {
-        throw new Exception("cannot find template Type in assembly (templateType is null)");
+        throw new Exception($"cannot find template Type in assembly ({nameof(templateType)} is null)");
       }
 
-      result._templateInstance = Activator.CreateInstance(templateType) as TemplateBase;
-      if (result._templateInstance == null)
+      var testInstance = Activator.CreateInstance(templateType) as HttpRequestTemplateBase;
+      if (testInstance == null)
       {
-        throw new Exception("cannot construct template Type (templateInstance is null)");
+        throw new Exception($"cannot construct template Type ({nameof(testInstance)} is null)");
       }
 
-      return result;
+      return new RazorRenderer() { TemplateType = templateType };
     }
 
-    public string Render(dynamic model = null)
+
+   public HttpRequestBase Render(RequestDefinition requestDefinition)
     {
-      _templateInstance.Model = model;
+      var instance = Activator.CreateInstance(TemplateType) as HttpRequestTemplateBase;
+      instance.Model = requestDefinition;
 
-      _templateInstance.Execute();
-      var result = _templateInstance.Buffer.ToString();
-      _templateInstance.Buffer.Clear();
+      instance.Execute();
 
-      return result;
+      instance.Result = instance.Buffer.ToString();
+      instance.Buffer = null;
+
+      return instance;    
     }
-
-
-
-
-
   }
 }

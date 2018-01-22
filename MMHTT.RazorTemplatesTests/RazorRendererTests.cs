@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MMHTT.Configuration;
 
 namespace MMHTT.RazorTemplates.Tests
 {
@@ -8,8 +9,11 @@ namespace MMHTT.RazorTemplates.Tests
     [TestMethod()]
     public void RenderTestSimpleTemplate_ShouldProduceExpectedResult()
     {
-      var renderer = RazorRenderer.Parse("Hi, @Model!");
-      Assert.AreEqual("Hi, world!", renderer.Render("world"));
+      var target = RazorRenderer.Parse("Hi, @Model.Agent!");
+      var actual = target.Render(new RequestDefinition() { Agent = "World" });
+
+      Assert.IsNotNull(actual);
+      Assert.AreEqual("Hi, World!", actual.Result);
     }
   }
 }

@@ -37,8 +37,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="HttpRequestTemplateBase.cs" />
     <Compile Include="RazorRenderer.cs" />
-    <Compile Include="TemplateBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
