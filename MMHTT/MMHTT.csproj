@@ -30,15 +30,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="AgentBehaviour.cs" />
+    <Compile Include="Configuration\AgentBehaviour.cs" />
     <Compile Include="ILog.cs" />
     <Compile Include="IRequestRenderer.cs" />
-    <Compile Include="RequestVariation.cs" />
-    <Compile Include="KeyValue.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Configuration\RequestVariation.cs" />
+    <Compile Include="Configuration\KeyValue.cs" />
+    <Compile Include="Configuration\Config.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SettingsException.cs" />
-    <Compile Include="Template.cs" />
+    <Compile Include="Configuration\Template.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

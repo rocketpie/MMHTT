@@ -1,4 +1,5 @@
-﻿using MMHTT.Domain.Managers;
+﻿using MMHTT.Configuration;
+using MMHTT.Domain.Managers;
 using System;
 using System.Threading;
 
@@ -7,7 +8,7 @@ namespace MMHTT.Domain
   public class TestManager
   {
     ILog _log;
-    Settings _settings;
+    Config _config;
     ConnectionManager _connectionManager;
     CancellationTokenSource _cancellation;
 
@@ -15,15 +16,15 @@ namespace MMHTT.Domain
 
     private TestManager() { }
 
-    public static TestManager Parse(Settings settings, ILog log = null)
+    public static TestManager Parse(Config settings, ILog log = null)
     {
-      SettingsManager.LoadAndTest(settings);
+      ConfigManager.LoadAndTest(settings);
 
       var result = new TestManager()
       {
         _cancellation = new CancellationTokenSource(),
         _log = log ?? new ConsoleLog(),
-        _settings = settings
+        _config = settings
       };
 
       result._connectionManager = new ConnectionManager(result._log);

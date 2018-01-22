@@ -1,4 +1,5 @@
-﻿using MMHTT.Domain.Helper;
+﻿using MMHTT.Configuration;
+using MMHTT.Domain.Helper;
 using System.Threading;
 using System.Timers;
 
@@ -14,7 +15,7 @@ namespace MMHTT.Domain
     IRequestRenderer _renderer;
 
     System.Timers.Timer _signal;
-    ThresholdDispatcher<RequestVariation> _variationDispatcher;
+    ThresholdDispatcher<RequestDefinition> _requestDispatcher;
 
     internal Agent(
       string id,
@@ -22,7 +23,7 @@ namespace MMHTT.Domain
       CancellationToken token,
       Connection connection,
       AgentBehaviour behaviour,
-      RequestVariation[] variations,
+      RequestDefinition[] requests,
       IRequestRenderer renderer)
     {
       _id = id;
@@ -30,7 +31,7 @@ namespace MMHTT.Domain
       _token = token;
       _connection = connection;
       _behaviour = behaviour;
-      _variationDispatcher = new ThresholdDispatcher<RequestVariation>(_log, variations, v => v.Weight);
+      _requestDispatcher = new ThresholdDispatcher<RequestDefinition>(_log, requests, v => v.Weight);
       _renderer = renderer;
 
       var interval = (1000 / behaviour.MaxRequestsPerSecond);
@@ -49,7 +50,7 @@ namespace MMHTT.Domain
     {
       if (_token.IsCancellationRequested) { return; }
 
-      var request = _renderer.Render(_variationDispatcher.Dispatch());
+      var request = _renderer.Render(_requestDispatcher.Dispatch());
 
       _connection.UseClient((connectionLog, client) =>
       {

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using MMHTT.Configuration;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -18,12 +19,12 @@ namespace MMHTT.Domain.Managers
       _token = token;
     }
 
-    internal Agent[] GenerateAgents(Settings settings)
+    internal Agent[] GenerateAgents(Config settings)
     {
-      var agentVariations = settings.RequestVariations.GroupBy(v => v.Agent);
+      var agentVariations = settings.RequestDefinitions.GroupBy(v => v.Agent);
       foreach (var agent in agentVariations)
       {
-        var behaviour = settings.AgentBehaviour?.FirstOrDefault(b => b.Agent == agent.Key) ?? AgentBehaviour.GetDefaultBehaviour();
+        var behaviour = settings.AgentBehaviours?.FirstOrDefault(b => b.Agent == agent.Key) ?? AgentBehaviour.GetDefaultBehaviour();
         _agents.Add(agent.Key ?? "", new Agent(agent.Key, _log, _token, _connectionManager.GetNewConnection(), behaviour, agent.ToArray(), null));
       }
 

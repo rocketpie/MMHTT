@@ -1,2 +1,2 @@
-﻿@model MMHTT.RequestVariation
+﻿@model MMHTT.RequestDefinition
 Hi there, @Model.KeyValue("SID")!

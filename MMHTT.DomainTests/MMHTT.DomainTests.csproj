@@ -55,7 +55,7 @@
     <Compile Include="Managers\SettingsManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="TestFiles\GetUser.request" />
-    <None Include="TestFiles\RequestVariations" />
+    <None Include="TestFiles\RequestDefinitions" />
     <Compile Include="TestManagerTests.cs" />
   </ItemGroup>
   <ItemGroup>

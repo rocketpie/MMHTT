@@ -1,16 +1,17 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MMHTT.Configuration;
 
 namespace MMHTT.Domain.Tests
 {
   [TestClass()]
   public class TestManagerTests
   {         
-    static Settings _insufficientSettingsTest = new Settings()
+    static Config _insufficientSettingsTest = new Config()
     {
       Templates = new Template[] { },
-      RequestVariations = new RequestVariation[]
+      RequestDefinitions = new RequestDefinition[]
      {
-        new RequestVariation() { }
+        new RequestDefinition() { }
      }
     };
 

@@ -1,11 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using MMHTT.Configuration;
 using System.Collections.Generic;
 using System.IO;
 
 namespace MMHTT.Domain.Tests
 {
   [TestClass()]
-  public class SettingsManagerTests
+  public class ConfigManagerTests
   {
     [TestInitialize()]
     public void Initialize()
@@ -34,21 +35,20 @@ namespace MMHTT.Domain.Tests
       return tmp;
     }
 
-    void AssertAreEqual(Settings expected, Settings actual)
+    void AssertAreEqual(Config expected, Config actual)
     {
       if (expected == null) { Assert.IsNull(actual); return; }
       Assert.IsNotNull(actual);
 
       Assert.AreEqual(expected.MaxTotalRequests, actual.MaxTotalRequests);
-      Assert.AreEqual(expected.Renderer, actual.Renderer);
-      Assert.AreEqual(expected.RequestVariationsFile, actual.RequestVariationsFile);
+      Assert.AreEqual(expected.RequestDefinitionsFile, actual.RequestDefinitionsFile);
 
-      AssertAreEqual(expected.AgentBehaviour, actual.AgentBehaviour);
+      AssertAreEqual(expected.AgentBehaviours, actual.AgentBehaviours);
       AssertAreEqual(expected.Templates, actual.Templates);
-      AssertAreEqual(expected.RequestVariations, actual.RequestVariations);
+      AssertAreEqual(expected.RequestDefinitions, actual.RequestDefinitions);
     }
 
-    private void AssertAreEqual(RequestVariation[] expected, RequestVariation[] actual)
+    private void AssertAreEqual(RequestDefinition[] expected, RequestDefinition[] actual)
     {
       if (expected == null) { Assert.IsNull(actual); return; }
       Assert.IsNotNull(actual);
@@ -108,9 +108,9 @@ namespace MMHTT.Domain.Tests
     /// <summary>
     /// write / read test: all properties set
     /// </summary>
-    static Settings _FullSettingsTestA = new Settings()
+    static Config _FullConfigTestA = new Config()
     {
-      AgentBehaviour = new AgentBehaviour[] {
+      AgentBehaviours = new AgentBehaviour[] {
          new AgentBehaviour() {
            Agent = "a",
            MaxRequestsPerSecond = 1345
@@ -122,8 +122,8 @@ namespace MMHTT.Domain.Tests
           File = "GetUser.request",
           TemplateString = "test data .@982746’‘‚  98¥‘‚¢‚²‘‚¥¹³‘‚‚¥[<?}ai" }
       },
-      RequestVariations = new RequestVariation[] {
-        new RequestVariation() {
+      RequestDefinitions = new RequestDefinition[] {
+        new RequestDefinition() {
           Agent ="1",
           Endpoint = "localhost/service.svc",
           TemplateName = "GetUser",
@@ -134,17 +134,16 @@ namespace MMHTT.Domain.Tests
         },
       },
       MaxTotalRequests = 100,
-      Renderer = "tiraen",
-      RequestVariationsFile = "atreunitae@\fgvxh435."
+      RequestDefinitionsFile = "atreunitae@\fgvxh435."
     };
 
 
     /// <summary>
     /// request variations and TemplateStrings in seperate files.
     /// </summary>
-    static Settings _settingsFilesTest = new Settings()
+    static Config _ConfigFilesTest = new Config()
     {
-      RequestVariationsFile = "../../TestFiles/RequestVariations",
+      RequestDefinitionsFile = "../../TestFiles/RequestDefinitions",
       Templates = new Template[] {
         new Template() { Name = "GetUser", File = "../../TestFiles/GetUser.request" } },
       MaxTotalRequests = 100,
@@ -153,27 +152,27 @@ namespace MMHTT.Domain.Tests
     /// <summary>
     /// minimum info to start a test
     /// </summary>
-    static Settings _minimalSettingsTest = new Settings()
+    static Config _minimalConfigTest = new Config()
     {
       Templates = new Template[] {
        new Template() { Name = "t1", TemplateString ="" }
       },
-      RequestVariations = new RequestVariation[]
+      RequestDefinitions = new RequestDefinition[]
       {
-        new RequestVariation() { Endpoint = "http://example.com" , TemplateName = "t1" }
+        new RequestDefinition() { Endpoint = "http://example.com" , TemplateName = "t1" }
       }
     };
 
     [TestMethod()]
-    public void LoadAndTestMinimalSettings_ShouldNotFail()
+    public void LoadAndTestMinimalConfig_ShouldNotFail()
     {
-      SettingsManager.LoadAndTest(_minimalSettingsTest);
+      ConfigManager.LoadAndTest(_minimalConfigTest);
     }
 
     [TestMethod()]
-    public void LoadAndTestSettingsFiles_ShouldNotFail()
+    public void LoadAndTestConfigFiles_ShouldNotFail()
     {
-      SettingsManager.LoadAndTest(_settingsFilesTest);
+      ConfigManager.LoadAndTest(_ConfigFilesTest);
     }
 
     [TestMethod()]
@@ -181,17 +180,17 @@ namespace MMHTT.Domain.Tests
     {
       var tmpfile = GetTempFileManaged();
 
-      SettingsManager.SaveFile(_FullSettingsTestA, tmpfile);
-      var actual = SettingsManager.ReadFromFile(tmpfile);
+      ConfigManager.SaveFile(_FullConfigTestA, tmpfile);
+      var actual = ConfigManager.ReadFromFile(tmpfile);
 
-      AssertAreEqual(_FullSettingsTestA, actual);
+      AssertAreEqual(_FullConfigTestA, actual);
     }
 
     [TestMethod()]
     public void SaveFileTest_ShouldNotFail()
     {
       var file = GetTempFileManaged();
-      SettingsManager.SaveFile(_minimalSettingsTest, file);
+      ConfigManager.SaveFile(_minimalConfigTest, file);
     }
   }
 }
