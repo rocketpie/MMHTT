@@ -22,7 +22,7 @@ namespace MMHTT.Domain.Tests
     [ExpectedException(typeof(SettingsException))]
     public void TestManagerParseTestInsufficientSettings_ShouldThrowSettingsException()
     {
-      var target = TestManager.Parse(_insufficientSettingsTest);
+      var target = TestManager.Parse(_insufficientSettingsTest, null);
     }
 
     [TestMethod()]

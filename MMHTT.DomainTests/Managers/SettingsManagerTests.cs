@@ -41,6 +41,8 @@ namespace MMHTT.Domain.Tests
       Assert.IsNotNull(actual);
 
       Assert.AreEqual(expected.MaxTotalRequests, actual.MaxTotalRequests);
+      Assert.AreEqual(expected.MaxRequestsPerSecond, actual.MaxRequestsPerSecond);
+      Assert.AreEqual(expected.MaxTestRuntimeSeconds, actual.MaxTestRuntimeSeconds);
       Assert.AreEqual(expected.RequestDefinitionsFile, actual.RequestDefinitionsFile);
 
       AssertAreEqual(expected.AgentBehaviours, actual.AgentBehaviours);
@@ -108,7 +110,7 @@ namespace MMHTT.Domain.Tests
     /// <summary>
     /// write / read test: all properties set
     /// </summary>
-    static Config _FullConfigTestA = new Config()
+    static Config _AllFieldsSetConfig = new Config()
     {
       AgentBehaviours = new AgentBehaviour[] {
          new AgentBehaviour() {
@@ -134,6 +136,8 @@ namespace MMHTT.Domain.Tests
         },
       },
       MaxTotalRequests = 100,
+      MaxRequestsPerSecond = 20,
+      MaxTestRuntimeSeconds = 6788,
       RequestDefinitionsFile = "atreunitae@\fgvxh435."
     };
 
@@ -141,7 +145,7 @@ namespace MMHTT.Domain.Tests
     /// <summary>
     /// request variations and TemplateStrings in seperate files.
     /// </summary>
-    static Config _ConfigFilesTest = new Config()
+    static Config _FilesConfig = new Config()
     {
       RequestDefinitionsFile = "../../TestFiles/RequestDefinitions",
       Templates = new Template[] {
@@ -152,7 +156,7 @@ namespace MMHTT.Domain.Tests
     /// <summary>
     /// minimum info to start a test
     /// </summary>
-    static Config _minimalConfigTest = new Config()
+    static Config _minimalConfig = new Config()
     {
       Templates = new Template[] {
        new Template() { Name = "t1", TemplateString ="" }
@@ -163,16 +167,33 @@ namespace MMHTT.Domain.Tests
       }
     };
 
+    /// <summary>
+    /// minimum info to start a test
+    /// </summary>
+    static Config _defaultBehaviourConfig = new Config()
+    {
+      Templates = new Template[] {
+       new Template() { Name = "t1", TemplateString ="" }
+      },
+      RequestDefinitions = new RequestDefinition[]
+      {
+        new RequestDefinition() { Endpoint = "http://example.com" , TemplateName = "t1" }
+      },
+      AgentBehaviours = new AgentBehaviour[] {
+        new AgentBehaviour() { Agent = "Default", MaxRequestsPerSecond = 30 }
+      }
+    };
+
     [TestMethod()]
     public void LoadAndTestMinimalConfig_ShouldNotFail()
     {
-      ConfigManager.LoadAndTest(_minimalConfigTest);
+      ConfigManager.LoadAndTest(_minimalConfig);
     }
 
     [TestMethod()]
     public void LoadAndTestConfigFiles_ShouldNotFail()
     {
-      ConfigManager.LoadAndTest(_ConfigFilesTest);
+      ConfigManager.LoadAndTest(_FilesConfig);
     }
 
     [TestMethod()]
@@ -180,17 +201,30 @@ namespace MMHTT.Domain.Tests
     {
       var tmpfile = GetTempFileManaged();
 
-      ConfigManager.SaveFile(_FullConfigTestA, tmpfile);
+      ConfigManager.SaveFile(_AllFieldsSetConfig, tmpfile);
       var actual = ConfigManager.ReadFromFile(tmpfile);
 
-      AssertAreEqual(_FullConfigTestA, actual);
+      AssertAreEqual(_AllFieldsSetConfig, actual);
     }
 
     [TestMethod()]
     public void SaveFileTest_ShouldNotFail()
     {
       var file = GetTempFileManaged();
-      ConfigManager.SaveFile(_minimalConfigTest, file);
+      ConfigManager.SaveFile(_minimalConfig, file);
     }
+
+    [TestMethod()]
+    public void LoadAndTestDefaultBehaviourConfig_ShouldOverrideAgentBehaviourDefault()
+    {
+      var expected = _defaultBehaviourConfig.AgentBehaviours[0].MaxRequestsPerSecond;
+
+      Assert.AreNotEqual(expected, AgentBehaviour.GetDefaultBehaviour().MaxRequestsPerSecond);
+
+      ConfigManager.LoadAndTest(_defaultBehaviourConfig);
+
+      Assert.AreEqual(expected, AgentBehaviour.GetDefaultBehaviour().MaxRequestsPerSecond);
+    }
+
   }
 }

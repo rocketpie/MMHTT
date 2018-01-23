@@ -25,5 +25,13 @@
     /// Stop Test afer reaching this number of Requests across all agents
     /// </summary>
     public int MaxTotalRequests { get; set; }
+    /// <summary>
+    /// Stop Test after this number of seconds
+    /// </summary>
+    public int MaxTestRuntimeSeconds { get; set; }
+    /// <summary>
+    /// limit average test frequency 
+    /// </summary>
+    public int MaxRequestsPerSecond { get; set; }
   }
 }

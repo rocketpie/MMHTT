@@ -10,39 +10,35 @@ namespace MMHTT.Domain
     ILog _log;
     Config _config;
     ConnectionManager _connectionManager;
-    CancellationTokenSource _cancellation;
 
     Agent[] _agents;
+    private Supervisor _supervisor;
 
     private TestManager() { }
 
-    public static TestManager Parse(Config settings, ILog log = null)
+    public static TestManager Parse(Config config, IRequestRenderer renderer, ILog log = null)
     {
-      ConfigManager.LoadAndTest(settings);
+      ConfigManager.LoadAndTest(config);
 
       var result = new TestManager()
       {
-        _cancellation = new CancellationTokenSource(),
         _log = log ?? new ConsoleLog(),
-        _config = settings
+        _config = config
       };
 
       result._connectionManager = new ConnectionManager(result._log);
+      result._supervisor = new Supervisor(result._log, TimeSpan.FromSeconds(config.MaxTestRuntimeSeconds), config.MaxTotalRequests, config.MaxRequestsPerSecond);
 
-      var agentManager = new AgentManager(result._log, result._cancellation.Token, result._connectionManager);
-      result._agents = agentManager.GenerateAgents(settings);
+      result._agents = AgentManager.InitializeAgents(result._log, config, result._connectionManager, result._supervisor, renderer);
 
       return result;
     }
 
-    public void Run()
+    public void Start()
     {
       try
       {
-        foreach (var agent in _agents)
-        {
-          agent.Run();
-        }
+        _supervisor.Start();
       }
       catch (Exception ex)
       {
@@ -50,9 +46,16 @@ namespace MMHTT.Domain
       }
     }
 
-    public void Stop()
+    public void Abort()
     {
-      _cancellation.Cancel();
+      try
+      {
+        _supervisor.Abort();
+      }
+      catch (Exception ex)
+      {
+        _log.Error("cannot Abort Test(s): " + ex.Message, ex);
+      }
     }
 
   }

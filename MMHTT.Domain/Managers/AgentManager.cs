@@ -1,37 +1,25 @@
 ﻿using MMHTT.Configuration;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace MMHTT.Domain.Managers
 {
   internal class AgentManager
   {
-    ILog _log;
-    ConnectionManager _connectionManager;
-    CancellationToken _token;
-    Dictionary<string, Agent> _agents = new Dictionary<string, Agent>();
-
-    internal AgentManager(ILog log, CancellationToken token, ConnectionManager connectionManager)
+    internal static Agent[] InitializeAgents(ILog log, Config settings, ConnectionManager connectionManager, Supervisor supervisor, IRequestRenderer renderer)
     {
-      _log = log;
-      _connectionManager = connectionManager;
-      _token = token;
-    }
+      Dictionary<string, Agent> _agents = new Dictionary<string, Agent>();
 
-    internal Agent[] GenerateAgents(Config settings)
-    {
-      var agentVariations = settings.RequestDefinitions.GroupBy(v => v.Agent);
-      foreach (var agent in agentVariations)
+      var agentRequestsGroups = settings.RequestDefinitions.GroupBy(v => v.Agent ?? nameof(AgentBehaviour.Default));
+      foreach (var agentRequests in agentRequestsGroups)
       {
-        var behaviour = settings.AgentBehaviours?.FirstOrDefault(b => b.Agent == agent.Key) ?? AgentBehaviour.GetDefaultBehaviour();
-        _agents.Add(agent.Key ?? "", new Agent(agent.Key, _log, _token, _connectionManager.GetNewConnection(), behaviour, agent.ToArray(), null));
+        var behaviour = settings.AgentBehaviours?.FirstOrDefault(b => b.Agent == agentRequests.Key) ?? AgentBehaviour.GetDefaultBehaviour();
+
+        _agents.Add(agentRequests.Key, new Agent(log, agentRequests.Key, behaviour, agentRequests.ToArray(), connectionManager.GetNewConnection(), supervisor, renderer));
       }
 
       return _agents.Values.ToArray();
     }
-
-
 
   }
 }
