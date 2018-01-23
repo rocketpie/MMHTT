@@ -11,14 +11,14 @@ namespace MMHTT.Domain
     public static Config ReadFromFile(string path)
     {
       var content = File.ReadAllText(path);
-      Config settings = JsonConvert.DeserializeObject<Config>(content);
+      Config config = JsonConvert.DeserializeObject<Config>(content);
 
-      return settings;
+      return config;
     }
 
-    public static void SaveFile(Config settings, string path)
+    public static void SaveFile(Config config, string path)
     {
-      var content = JsonConvert.SerializeObject(settings, Formatting.Indented);
+      var content = JsonConvert.SerializeObject(config, Formatting.Indented);
       File.WriteAllText(path, content);
     }
 
@@ -30,9 +30,9 @@ namespace MMHTT.Domain
     public static RequestDefinition[] ReadRequestDefinitionsFromFile(string path)
     {
       var content = File.ReadAllText(path);
-      Config settings = JsonConvert.DeserializeObject<Config>(content);
+      Config config = JsonConvert.DeserializeObject<Config>(content);
 
-      return settings.RequestDefinitions;
+      return config.RequestDefinitions;
     }
 
     /// <summary>
@@ -46,10 +46,6 @@ namespace MMHTT.Domain
 
       if (config.AgentBehaviours != null)
       {
-        // special case 'Default'
-        var defaultBehaviour = config.AgentBehaviours.FirstOrDefault(b => b.Agent == nameof(AgentBehaviour.Default));
-        if (defaultBehaviour != null) { AgentBehaviour.Default = defaultBehaviour; };
-
         // agent behaviour must be unique
         var behaviour = config.AgentBehaviours.GroupBy(a => a.Agent);
         var duplicateAgents = string.Join(", ", behaviour.Where(a => a.Count() > 2));
@@ -77,6 +73,13 @@ namespace MMHTT.Domain
         throw new SettingsException($"must provide at least one '{nameof(Config.Templates)}'");
       }
 
+      var templates = config.Templates.GroupBy(a => a.Name);
+      var duplicateTemplateNames = string.Join(", ", templates.Where(a => a.Count() > 2));
+      if (!string.IsNullOrWhiteSpace(duplicateTemplateNames))
+      {
+        throw new SettingsException($"must not provide more than one '{nameof(Config.Templates)}' with the same name. (affected '{nameof(Template)}'(s): " + duplicateTemplateNames + ")");
+      }
+
       foreach (var template in config.Templates)
       {
         if (!string.IsNullOrWhiteSpace(template.File))
@@ -89,11 +92,11 @@ namespace MMHTT.Domain
         if (template.TemplateString == null) { throw new SettingsException($"must provide '{nameof(Template.TemplateString)}' for each '{nameof(Config.Templates)}'"); }
       }
 
-      foreach (var variation in config.RequestDefinitions)
+      foreach (var request in config.RequestDefinitions)
       {
-        if (variation.Endpoint == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.Endpoint)}' for each '{nameof(Config.RequestDefinitions)}'"); }
-        if (variation.TemplateName == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.TemplateName)}' for each '{nameof(Config.RequestDefinitions)}'"); }
-        if (!config.Templates.Any(t => t.Name == variation.TemplateName)) { throw new SettingsException($"{nameof(RequestDefinition)}: cannot find '{nameof(Template)}' with '{nameof(Template.Name)}' '{variation.TemplateName}'"); }
+        if (request.Endpoint == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.Endpoint)}' for each '{nameof(Config.RequestDefinitions)}'"); }
+        if (request.TemplateName == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.TemplateName)}' for each '{nameof(Config.RequestDefinitions)}'"); }
+        if (!config.Templates.Any(t => t.Name == request.TemplateName)) { throw new SettingsException($"{nameof(RequestDefinition)}: cannot find '{nameof(Template)}' with '{nameof(Template.Name)}' '{request.TemplateName}'"); }
 
       }
     }

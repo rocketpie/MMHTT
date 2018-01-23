@@ -1,7 +1,6 @@
 ﻿using MMHTT.Configuration;
 using MMHTT.Domain.Managers;
 using System;
-using System.Threading;
 
 namespace MMHTT.Domain
 {
@@ -16,7 +15,7 @@ namespace MMHTT.Domain
 
     private TestManager() { }
 
-    public static TestManager Parse(Config config, IRequestRenderer renderer, ILog log = null)
+    public static TestManager ParseAndInitialize(Config config, IRequestRenderer renderer, ILog log = null)
     {
       ConfigManager.LoadAndTest(config);
 
@@ -25,6 +24,8 @@ namespace MMHTT.Domain
         _log = log ?? new ConsoleLog(),
         _config = config
       };
+
+      renderer.Initialize(result._config);
 
       result._connectionManager = new ConnectionManager(result._log);
       result._supervisor = new Supervisor(result._log, TimeSpan.FromSeconds(config.MaxTestRuntimeSeconds), config.MaxTotalRequests, config.MaxRequestsPerSecond);

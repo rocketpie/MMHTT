@@ -14,8 +14,13 @@
     /// n = (this.Weight / sum(Weight)) * 
     /// </summary>
     public int Weight { get; set; }
-
+    /// <summary>
+    /// Http endponit to query
+    /// </summary>
     public string Endpoint { get; set; }
+    /// <summary>
+    /// 
+    /// </summary>
     public string TemplateName { get; set; }
     public KeyValue[] KeyValues { get; set; }
 

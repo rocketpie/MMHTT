@@ -2,6 +2,7 @@
 using MMHTT.Configuration;
 using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -19,13 +20,13 @@ namespace MMHTT.RazorTemplates
     const string GENERATED_NAMESPACE = "RazorOutput";
     const string GENERATED_TEMPLATE_TYPE = "Template";
 
-    public Type TemplateType { get; private set; }
+    public Dictionary<string, Type> _templateTypes = new Dictionary<string, Type>();
 
     /// <summary>
-    /// generate Razor assembly
+    /// generate Template assembly (and type) with Razor
     /// </summary>
     /// <param name="template"></param>
-    public static RazorRenderer Parse(string template)
+    static Type Parse(string template)
     {
       // Set up the hosting environment         
       // a. Use the C# language (you could detect this based on the file extension if you want to)
@@ -93,13 +94,22 @@ namespace MMHTT.RazorTemplates
         throw new Exception($"cannot construct template Type ({nameof(testInstance)} is null)");
       }
 
-      return new RazorRenderer() { TemplateType = templateType };
+      return templateType;
     }
 
-
-   public HttpRequestBase Render(RequestDefinition requestDefinition)
+    public void Initialize(Config config)
     {
-      var instance = Activator.CreateInstance(TemplateType) as HttpRequestTemplateBase;
+      foreach (var template in config.Templates)
+      {
+        _templateTypes.Add(template.Name, Parse(template.TemplateString));
+      }
+    }
+
+    public HttpRequestBase Render(RequestDefinition requestDefinition)
+    {
+      var templateType = _templateTypes[requestDefinition.TemplateName];
+
+      var instance = Activator.CreateInstance(templateType) as HttpRequestTemplateBase;
       instance.Model = requestDefinition;
 
       instance.Execute();
@@ -107,7 +117,8 @@ namespace MMHTT.RazorTemplates
       instance.Result = instance.Buffer.ToString();
       instance.Buffer = null;
 
-      return instance;    
+      return instance;
     }
+
   }
 }

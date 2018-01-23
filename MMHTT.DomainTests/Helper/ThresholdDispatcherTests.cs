@@ -53,8 +53,6 @@ namespace MMHTT.Domain.Helper.Tests
       Assert.AreEqual(0, testData.Count);
     }
 
-
-
     [TestMethod()]
     public void DispatchTestDifferntWeight_GetDispatchedWeighted()
     {
@@ -77,8 +75,6 @@ namespace MMHTT.Domain.Helper.Tests
       // *9 is still supposed to work, but 5 is ok, shouldn't fail as often.
       Assert.IsTrue(result[1] * 5 < result[2]);
     }
-
-
 
   }
 }

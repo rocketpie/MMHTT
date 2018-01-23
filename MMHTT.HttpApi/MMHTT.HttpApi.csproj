@@ -23,6 +23,7 @@
     <UseGlobalApplicationHostFile />
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -92,16 +93,19 @@
   <ItemGroup>
     <Compile Include="App_Start\SwaggerConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\ValuesController.cs" />
+    <Compile Include="Controllers\TestController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Helper\LogBuffer.cs" />
+    <Compile Include="Models\TestModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Index.html" />
+    <Content Include="js\main.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -114,6 +118,10 @@
     <ProjectReference Include="..\MMHTT.Domain\MMHTT.Domain.csproj">
       <Project>{7160d99e-89e7-47f6-b13c-ade907b65f53}</Project>
       <Name>MMHTT.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MMHTT.RazorTemplates\MMHTT.RazorTemplates.csproj">
+      <Project>{e4255c8e-bd08-43e5-b158-614101f03b1d}</Project>
+      <Name>MMHTT.RazorTemplates</Name>
     </ProjectReference>
     <ProjectReference Include="..\MMHTT\MMHTT.csproj">
       <Project>{b526e831-2c8d-4145-820f-4c4d8ee4064b}</Project>

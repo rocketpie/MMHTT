@@ -12,6 +12,9 @@
     /// </summary>
     public string File { get; set; }
 
+    /// <summary>
+    /// actual template
+    /// </summary>
     public string TemplateString { get; set; }
 
   }
