@@ -8,20 +8,17 @@
     /// <summary>
     /// Agent to use this variation. 
     /// </summary>
-    public string Agent { get; set; }
+    public string[] Agents { get; set; }
     /// <summary>
     /// when multiple request variations are defined for a single agent, this controls how often this variation is used relative to the others.
     /// n = (this.Weight / sum(Weight)) * 
     /// </summary>
     public int Weight { get; set; }
     /// <summary>
-    /// Http endponit to query
-    /// </summary>
-    public string Endpoint { get; set; }
-    /// <summary>
     /// 
     /// </summary>
     public string TemplateName { get; set; }
+
     public KeyValue[] KeyValues { get; set; }
 
     /// <summary>

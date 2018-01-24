@@ -8,11 +8,6 @@ namespace MMHTT.Domain.Tests
   [TestClass()]
   public class ConfigManagerTests
   {
-    [TestInitialize()]
-    public void Initialize()
-    {
-    }
-
     static List<string> _filesToCleanUp = new List<string>();
 
     [TestCleanup()]
@@ -62,12 +57,23 @@ namespace MMHTT.Domain.Tests
       Assert.AreEqual(expected.Length, actual.Length);
       for (int i = 0; i < expected.Length; i++)
       {
-        Assert.AreEqual(expected[i].Agent, actual[i].Agent);
         Assert.AreEqual(expected[i].Weight, actual[i].Weight);
-        Assert.AreEqual(expected[i].Endpoint, actual[i].Endpoint);
         Assert.AreEqual(expected[i].TemplateName, actual[i].TemplateName);
 
+        AssertAreEqual(expected[i].Agents, actual[i].Agents);
         AssertAreEqual(expected[i].KeyValues, actual[i].KeyValues);
+      }
+    }
+
+    private void AssertAreEqual(string[] expected, string[] actual)
+    {
+      if (expected == null) { Assert.IsNull(actual); return; }
+      Assert.IsNotNull(actual);
+
+      Assert.AreEqual(expected.Length, actual.Length);
+      for (int i = 0; i < expected.Length; i++)
+      {
+        Assert.AreEqual(expected[i], actual[i]);
       }
     }
 
@@ -108,6 +114,8 @@ namespace MMHTT.Domain.Tests
       {
         Assert.AreEqual(expected[i].Agent, actual[i].Agent);
         Assert.AreEqual(expected[i].MaxRequestsPerSecond, actual[i].MaxRequestsPerSecond);
+
+        AssertAreEqual(expected[i].InitialSessionData, actual[i].InitialSessionData);
       }
     }
 
@@ -122,7 +130,7 @@ namespace MMHTT.Domain.Tests
       },
       RequestDefinitions = new RequestDefinition[]
       {
-        new RequestDefinition() { Endpoint = "http://example.com" , TemplateName = "t1" }
+        new RequestDefinition() { TemplateName = "t1" }
       }
     };
     [TestMethod()]
@@ -163,7 +171,10 @@ namespace MMHTT.Domain.Tests
       AgentBehaviours = new AgentBehaviour[] {
          new AgentBehaviour() {
            Agent = "a",
-           MaxRequestsPerSecond = 1345
+           MaxRequestsPerSecond = 1345,
+           InitialSessionData = new KeyValue[]{
+             new KeyValue() { Key = "SID", Value= "00166228051029914098B1F5DB42A7FC3FA4001" },
+           }
          }
        },
       Templates = new Template[] {
@@ -174,12 +185,11 @@ namespace MMHTT.Domain.Tests
       },
       RequestDefinitions = new RequestDefinition[] {
         new RequestDefinition() {
-          Agent ="1",
-          Endpoint = "localhost/service.svc",
-          TemplateName = "GetUser",
+          Agents = new string[]{ "1" },
+          TemplateName = "Login",
           Weight = 30000,
           KeyValues = new KeyValue[] {
-            new KeyValue() { Key = "SID", Value= "00166228051029914098B1F5DB42A7FC3FA4001" },
+            new KeyValue() { Key = "Username", Value= "testuser" },
           }
         },
       },
@@ -198,32 +208,6 @@ namespace MMHTT.Domain.Tests
 
       AssertAreEqual(_AllFieldsSetConfig, actual);
     }
-
-
-    /// <summary>
-    /// minimum info to start a test
-    /// </summary>
-    static Config _defaultBehaviourConfig = new Config()
-    {
-      Templates = new Template[] {
-       new Template() { Name = "t1", TemplateString ="" }
-      },
-      RequestDefinitions = new RequestDefinition[]
-      {
-        new RequestDefinition() { Endpoint = "http://example.com" , TemplateName = "t1" }
-      },
-      AgentBehaviours = new AgentBehaviour[] {
-        new AgentBehaviour() { Agent = "Default", MaxRequestsPerSecond = 30 }
-      }
-    };
-    [TestMethod()]
-    public void LoadAndTestDefaultBehaviourConfig_ShouldOverrideAgentBehaviourDefault()
-    {
-      ConfigManager.LoadAndTest(_defaultBehaviourConfig);
-      Assert.Inconclusive(); // how to test now?      
-    }
-
-
 
   }
 }

@@ -1,6 +1,8 @@
 ﻿using MMHTT.Configuration;
 using MMHTT.Domain.Helper;
 using System;
+using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Timers;
@@ -17,7 +19,17 @@ namespace MMHTT.Domain
     Supervisor _supervisor;
     IRequestRenderer _renderer;
 
-    System.Timers.Timer _signal;
+    /// <summary>
+    /// Agent session data
+    /// </summary>
+    NameValueCollection _session;
+
+    int _totalRequests = 0;
+    /// <summary>
+    /// Started when the Agent starts
+    /// </summary>
+    Stopwatch _stopwatch;
+    Timer _signal;
 
 
     internal Agent(
@@ -37,9 +49,16 @@ namespace MMHTT.Domain
       _supervisor = supervisor;
       _renderer = renderer;
 
+      _session = new NameValueCollection();
+      foreach (var item in _behaviour.InitialSessionData)
+      {
+        _session[item.Key] = item.Value;
+      }
+
       var maxRequestsPerSecond = behaviour.MaxRequestsPerSecond;
-      if (maxRequestsPerSecond < 1) { maxRequestsPerSecond = 1000; }
+      if (maxRequestsPerSecond < 1) { maxRequestsPerSecond = 10; }
       var interval = (1000 / maxRequestsPerSecond);
+      if (interval < 1) { interval = 1; }
       _signal = new Timer(interval);
 
       _supervisor.Started += _supervisor_Started;
@@ -49,6 +68,7 @@ namespace MMHTT.Domain
 
     void _supervisor_Started(object sender, EventArgs e)
     {
+      _stopwatch = Stopwatch.StartNew();
       _signal.Start();
     }
 
@@ -59,34 +79,36 @@ namespace MMHTT.Domain
 
     private void _signal_Elapsed(object sender, ElapsedEventArgs e)
     {
+      /// aborted?
       if (_supervisor.CancellationToken.IsCancellationRequested)
       {
         Abort();
         return;
       }
 
+      /// supervisor: too many requests?
       if (_supervisor.ShouldSkipRequest) { return; }
 
-      var requestBase = _renderer.Render(_requestDispatcher.Dispatch());
+      var requestBase = _renderer.Render(_requestDispatcher.Dispatch(), _session);
 
       if (requestBase.Method == null)
       {
-        _log.Error($"cannot send request: HTTP Method not set");
+        _log.Error($"cannot send request: 'Method' not set");
         return;
       }
 
       // also validate method content?
       Uri endpoint;
-      if (!Uri.TryCreate(requestBase.Model.Endpoint, UriKind.Absolute, out endpoint))
+      if (!Uri.TryCreate(requestBase.Url, UriKind.Absolute, out endpoint))
       {
-        _log.Error($"cannot send request: Endpoint is not a valid Uri");
+        _log.Error($"cannot send request: 'Url' not set to a valid Uri");
         return;
       }
 
       var request = new HttpRequestMessage(new HttpMethod(requestBase.Method), endpoint);
-      if (!string.IsNullOrEmpty(requestBase.Result))
+      if (!string.IsNullOrEmpty(requestBase.RequestContent))
       {
-        request.Content = new StringContent(requestBase.Result);
+        request.Content = new StringContent(requestBase.RequestContent);
       }
 
       if (requestBase.Headers.AllKeys.Any())
@@ -107,14 +129,17 @@ namespace MMHTT.Domain
         }
       }
 
+      HttpResponseMessage response = null;
+
       _connection.UseClient((connectionLog, client) =>
       {
         var responseTask = client.SendAsync(request);
         _supervisor.SignalRequestSent();
+        _totalRequests++;
 
         try
         {
-          using (HttpResponseMessage response = responseTask.Result)
+          using (response = responseTask.Result)
           {
             using (HttpContent content = response.Content)
             {
@@ -122,11 +147,29 @@ namespace MMHTT.Domain
             }
           }
         }
+        catch (HttpRequestException hex)
+        {
+
+          _log.Warn($"6f8a054f Error: {hex.ToString()}");
+        }
         catch (Exception ex)
         {
           _log.Error($"021d64f8 Error: {ex.Message}", ex);
         }
       });
+
+      if (requestBase.OnResponse != null)
+      {
+        try
+        {
+          requestBase.OnResponse(requestBase, response, _session);
+        }
+        catch (Exception ex)
+        {
+          _log.Warn($"{nameof(HttpRequestBase.OnResponse)} exception: {ex.ToString()}");
+        }
+      }
+
     }
   }
 }

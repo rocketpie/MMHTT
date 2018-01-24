@@ -6,21 +6,27 @@ namespace MMHTT.Domain.Managers
 {
   internal class AgentManager
   {
-    internal static Agent[] InitializeAgents(ILog log, Config settings, ConnectionManager connectionManager, Supervisor supervisor, IRequestRenderer renderer)
+    internal static Agent[] InitializeAgents(ILog log, Config config, ConnectionManager connectionManager, Supervisor supervisor, IRequestRenderer renderer)
     {
-      Dictionary<string, Agent> _agents = new Dictionary<string, Agent>();
+      List<Agent> agents = new List<Agent>();
+      var defaultAgentBehaviour = config.AgentBehaviours.FirstOrDefault(a => a.Agent == "Default") ?? new AgentBehaviour();
 
-      var agentRequestsGroups = settings.RequestDefinitions.GroupBy(v => v.Agent ?? "Default");
-      foreach (var agentRequests in agentRequestsGroups)
+      var agentNames = config.RequestDefinitions.SelectMany(r => r.Agents).Distinct();
+      foreach (var agentName in agentNames)
       {
-        var empty = new AgentBehaviour(); // if none specified
-        var behaviour = settings.AgentBehaviours?.FirstOrDefault(b => b.Agent == agentRequests.Key) ?? empty;
+        var requests = config.RequestDefinitions
+          .Where(request => request.Agents
+            .Any(requestAgent => requestAgent == agentName)
+          ).ToArray();
 
-        _agents.Add(agentRequests.Key, new Agent(log, agentRequests.Key, behaviour, agentRequests.ToArray(), connectionManager.GetNewConnection(), supervisor, renderer));
+        var behaviour = config.AgentBehaviours
+          .FirstOrDefault(a => a.Agent == agentName)
+          ?? defaultAgentBehaviour;
+
+        agents.Add(new Agent(log, agentName, behaviour, requests, connectionManager.GetNewConnection(), supervisor, renderer));
       }
 
-      return _agents.Values.ToArray();
+      return agents.ToArray();
     }
-
   }
 }

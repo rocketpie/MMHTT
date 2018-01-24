@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMHTT.HttpApi", "MMHTT.HttpApi\MMHTT.HttpApi.csproj", "{451091FD-23F4-4367-8C58-7CB6088E2287}"
 EndProject
@@ -14,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMHTT.RazorTemplates", "MMHTT.RazorTemplates\MMHTT.RazorTemplates.csproj", "{E4255C8E-BD08-43E5-B158-614101F03B1D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMHTT.RazorTemplatesTests", "MMHTT.RazorTemplatesTests\MMHTT.RazorTemplatesTests.csproj", "{13F5592C-00C2-4683-BE93-E1F645C32044}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestAPI", "TestAPI\TestAPI.csproj", "{04065732-E4E8-4FF6-8008-33AA94353168}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,8 +47,15 @@ Global
 		{13F5592C-00C2-4683-BE93-E1F645C32044}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13F5592C-00C2-4683-BE93-E1F645C32044}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13F5592C-00C2-4683-BE93-E1F645C32044}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04065732-E4E8-4FF6-8008-33AA94353168}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04065732-E4E8-4FF6-8008-33AA94353168}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04065732-E4E8-4FF6-8008-33AA94353168}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04065732-E4E8-4FF6-8008-33AA94353168}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {23187D80-0183-4E19-80E3-C43151A1D954}
 	EndGlobalSection
 EndGlobal

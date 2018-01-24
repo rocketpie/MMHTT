@@ -94,10 +94,8 @@ namespace MMHTT.Domain
 
       foreach (var request in config.RequestDefinitions)
       {
-        if (request.Endpoint == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.Endpoint)}' for each '{nameof(Config.RequestDefinitions)}'"); }
         if (request.TemplateName == null) { throw new SettingsException($"must provide '{nameof(RequestDefinition.TemplateName)}' for each '{nameof(Config.RequestDefinitions)}'"); }
         if (!config.Templates.Any(t => t.Name == request.TemplateName)) { throw new SettingsException($"{nameof(RequestDefinition)}: cannot find '{nameof(Template)}' with '{nameof(Template.Name)}' '{request.TemplateName}'"); }
-
       }
     }
 

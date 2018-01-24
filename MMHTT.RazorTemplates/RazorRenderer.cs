@@ -3,6 +3,7 @@ using MMHTT.Configuration;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -45,6 +46,8 @@ namespace MMHTT.RazorTemplates
 
       // d. Add default imports and references
       host.NamespaceImports.Add("System");
+      host.NamespaceImports.Add("System.Collections.Specialized");
+      host.NamespaceImports.Add("System.Net.Http");
       host.NamespaceImports.Add("Microsoft.CSharp");
 
       CompilerParameters compilerParameters = new CompilerParameters();
@@ -52,6 +55,7 @@ namespace MMHTT.RazorTemplates
       compilerParameters.ReferencedAssemblies.Add(TEMPLATE_ASSEMBLY);
       compilerParameters.ReferencedAssemblies.Add("System.dll");
       compilerParameters.ReferencedAssemblies.Add("System.Core.dll");
+      compilerParameters.ReferencedAssemblies.Add("System.Net.Http.dll");
       compilerParameters.ReferencedAssemblies.Add("Microsoft.CSharp.dll");   // dynamic support
 
       string outputAssemblyFile = Path.Combine(_assemblyPath, string.Format("{0}.dll", Guid.NewGuid().ToString("N")));
@@ -111,7 +115,7 @@ namespace MMHTT.RazorTemplates
       }
     }
 
-    public HttpRequestBase Render(RequestDefinition requestDefinition)
+    public HttpRequestBase Render(RequestDefinition requestDefinition, NameValueCollection session)
     {
       if (!_templateTypes.ContainsKey(requestDefinition.TemplateName))
       {
@@ -122,10 +126,11 @@ namespace MMHTT.RazorTemplates
 
       var instance = Activator.CreateInstance(templateType) as HttpRequestTemplateBase;
       instance.Model = requestDefinition;
+      instance.Session = session;
 
       instance.Execute();
 
-      instance.Result = instance.Buffer.ToString();
+      instance.RequestContent = instance.Buffer.ToString();
       instance.Buffer = null;
 
       return instance;
