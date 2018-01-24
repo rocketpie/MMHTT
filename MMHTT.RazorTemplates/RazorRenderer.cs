@@ -20,13 +20,19 @@ namespace MMHTT.RazorTemplates
     const string GENERATED_NAMESPACE = "RazorOutput";
     const string GENERATED_TEMPLATE_TYPE = "Template";
 
-    public Dictionary<string, Type> _templateTypes = new Dictionary<string, Type>();
+    Dictionary<string, Type> _templateTypes = new Dictionary<string, Type>();
+    string _assemblyPath;
+
+    public RazorRenderer(string assemblyPath)
+    {
+      _assemblyPath = assemblyPath;
+    }
 
     /// <summary>
     /// generate Template assembly (and type) with Razor
     /// </summary>
     /// <param name="template"></param>
-    static Type Parse(string template)
+    Type Parse(string template)
     {
       // Set up the hosting environment         
       // a. Use the C# language (you could detect this based on the file extension if you want to)
@@ -48,7 +54,7 @@ namespace MMHTT.RazorTemplates
       compilerParameters.ReferencedAssemblies.Add("System.Core.dll");
       compilerParameters.ReferencedAssemblies.Add("Microsoft.CSharp.dll");   // dynamic support
 
-      string outputAssemblyFile = string.Format("Temp_{0}.dll", Guid.NewGuid().ToString("N"));
+      string outputAssemblyFile = Path.Combine(_assemblyPath, string.Format("{0}.dll", Guid.NewGuid().ToString("N")));
       compilerParameters.OutputAssembly = outputAssemblyFile;
 
       // Create the template engine using this host
@@ -107,6 +113,11 @@ namespace MMHTT.RazorTemplates
 
     public HttpRequestBase Render(RequestDefinition requestDefinition)
     {
+      if (!_templateTypes.ContainsKey(requestDefinition.TemplateName))
+      {
+        throw new Exception($"d8a59a67: cannot reder {nameof(Template)} '{requestDefinition?.TemplateName}': not defined.");
+      }
+
       var templateType = _templateTypes[requestDefinition.TemplateName];
 
       var instance = Activator.CreateInstance(templateType) as HttpRequestTemplateBase;

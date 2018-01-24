@@ -52,7 +52,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Helper\ThresholdDispatcherTests.cs" />
-    <Compile Include="Managers\SettingsManagerTests.cs" />
+    <Compile Include="Managers\ConfigManagerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <None Include="TestFiles\GetUser.request" />
     <None Include="TestFiles\RequestDefinitions" />

@@ -15,7 +15,7 @@ namespace MMHTT.Domain
 
     private TestManager() { }
 
-    public static TestManager ParseAndInitialize(Config config, IRequestRenderer renderer, ILog log = null)
+    public static TestManager Initialize(Config config, IRequestRenderer renderer, ILog log = null)
     {
       ConfigManager.LoadAndTest(config);
 

@@ -5,43 +5,51 @@ using MMHTT.HttpApi.Models;
 using MMHTT.RazorTemplates;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Web.Http;
 
 namespace MMHTT.HttpApi.Controllers
 {
   public class TestController : ApiController
   {
-    Dictionary<string, TestModel> _tests = new Dictionary<string, TestModel>();
+    const string ASSEMBLY_PATH_SETTING = "AssemblyPath";
 
     // GET api/values
-    public IEnumerable<string> Get()
-    {
-      return _tests.Keys;
-    }
+    public IEnumerable<string> Get() => TestRepository.GetAllKeys();
+
 
     // GET api/values/5
     public string[] Get(string id)
     {
-      if (!_tests.ContainsKey(id)) { throw new HttpResponseException(System.Net.HttpStatusCode.NotFound); }
-      return _tests[id].Log.Buffer.ToArray();
+      var test = TestRepository.Get(id);
+
+      var data = test.Log.Buffer.ToArray();
+      test.Log.Buffer.Clear();
+
+      return data;
     }
 
     // PUT api/values/5
-    public void Put(string name, [FromBody]Config config)
+    public string Put(string name, [FromBody]Config config)
     {
       string id = Guid.NewGuid().ToString("N");
-
       var logbuffer = new LogBuffer();
-      _tests.Add(id, new TestModel() { Id = id, Name = name, TestManager = TestManager.ParseAndInitialize(config, new RazorRenderer(), logbuffer), Log = logbuffer });
+
+      TestManager testManager = TestManager.Initialize(config, new RazorRenderer(ConfigurationManager.AppSettings[ASSEMBLY_PATH_SETTING]), logbuffer);
+
+      TestRepository.Register(new TestModel() { Id = id, Name = name, Log = logbuffer, TestManager = testManager });
+
+      testManager.Start();
+
+      return id;
     }
 
     // DELETE api/values/5
     public void Delete(string id)
     {
-      if (!_tests.ContainsKey(id)) { throw new HttpResponseException(System.Net.HttpStatusCode.NotFound); }
-
-      _tests[id].TestManager.Abort();
-      _tests.Remove(id);
+      TestRepository.Get(id).TestManager.Abort();
+      TestRepository.Delete(id);
     }
+
   }
 }

@@ -32,6 +32,7 @@ namespace MMHTT.Domain
 
     /// <summary>
     /// Signal Agents to start working 
+    /// TODO: test restart behaviour
     /// </summary>
     public void Start()
     {
@@ -90,7 +91,10 @@ namespace MMHTT.Domain
           _cancellation.Cancel();
         }
 
-        decimal currentRequestPerSecond = (decimal)_totalAgentRequests / ((decimal)_stopwatch.ElapsedMilliseconds / 1000);
+        decimal elapsedSeconds = (decimal)_stopwatch.ElapsedMilliseconds / 1000;
+        if (elapsedSeconds == 0) { elapsedSeconds = 1; }
+
+        decimal currentRequestPerSecond = (decimal)_totalAgentRequests / elapsedSeconds;
         ShouldSkipRequest = currentRequestPerSecond > _maxRequestPerSecond;
         if (ShouldSkipRequest)
         {

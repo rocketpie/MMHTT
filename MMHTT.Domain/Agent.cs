@@ -37,8 +37,10 @@ namespace MMHTT.Domain
       _supervisor = supervisor;
       _renderer = renderer;
 
-      var interval = (1000 / behaviour.MaxRequestsPerSecond);
-      _signal = new System.Timers.Timer(interval);
+      var maxRequestsPerSecond = behaviour.MaxRequestsPerSecond;
+      if (maxRequestsPerSecond < 1) { maxRequestsPerSecond = 1000; }
+      var interval = (1000 / maxRequestsPerSecond);
+      _signal = new Timer(interval);
 
       _supervisor.Started += _supervisor_Started;
       _supervisor.CancellationToken.Register(Abort);
@@ -82,7 +84,10 @@ namespace MMHTT.Domain
       }
 
       var request = new HttpRequestMessage(new HttpMethod(requestBase.Method), endpoint);
-      request.Content = new StringContent(requestBase.Result);
+      if (!string.IsNullOrEmpty(requestBase.Result))
+      {
+        request.Content = new StringContent(requestBase.Result);
+      }
 
       if (requestBase.Headers.AllKeys.Any())
       {
@@ -104,9 +109,12 @@ namespace MMHTT.Domain
 
       _connection.UseClient((connectionLog, client) =>
       {
+        var responseTask = client.SendAsync(request);
+        _supervisor.SignalRequestSent();
+
         try
         {
-          using (HttpResponseMessage response = client.SendAsync(request).Result)
+          using (HttpResponseMessage response = responseTask.Result)
           {
             using (HttpContent content = response.Content)
             {
@@ -116,7 +124,7 @@ namespace MMHTT.Domain
         }
         catch (Exception ex)
         {
-          _log.Error($"http response error: {ex.Message}", ex);
+          _log.Error($"021d64f8 Error: {ex.Message}", ex);
         }
       });
     }
