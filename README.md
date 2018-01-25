@@ -10,7 +10,8 @@ The Idea is to provide request definitions (request to make) with the following 
     * -> KeyValues (dynamic data) 
     * -> Request agent behaviour
 
-example:  
+example: 
+```json
 {
   "AgentBehaviours": [
     {
@@ -36,6 +37,7 @@ example:
   "MaxRequestsPerSecond":3,
   "MaxTestRuntimeSeconds":10,
 }
+```
 
 # TODOs:
 read KeyValues from file(s) in Sets, so that random/generic test data can be provided en masse via file.
