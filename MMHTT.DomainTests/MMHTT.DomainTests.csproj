@@ -51,6 +51,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="DomainTests.cs" />
     <Compile Include="Helper\ThresholdDispatcherTests.cs" />
     <Compile Include="Managers\ConfigManagerTests.cs" />

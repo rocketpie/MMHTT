@@ -79,58 +79,14 @@ namespace MMHTT.Domain
 
     private void _signal_Elapsed(object sender, ElapsedEventArgs e)
     {
-      /// aborted?
-      if (_supervisor.CancellationToken.IsCancellationRequested)
-      {
-        Abort();
-        return;
-      }
-
-      /// supervisor: too many requests?
-      if (_supervisor.ShouldSkipRequest) { return; }
+      if (!ContinueRequest()) { return; }
 
       var requestBase = _renderer.Render(_requestDispatcher.Dispatch(), _session);
 
-      if (requestBase.Method == null)
-      {
-        _log.Error($"cannot send request: 'Method' not set");
-        return;
-      }
-
-      // also validate method content?
-      Uri endpoint;
-      if (!Uri.TryCreate(requestBase.Url, UriKind.Absolute, out endpoint))
-      {
-        _log.Error($"cannot send request: 'Url' not set to a valid Uri");
-        return;
-      }
-
-      var request = new HttpRequestMessage(new HttpMethod(requestBase.Method), endpoint);
-      if (!string.IsNullOrEmpty(requestBase.RequestContent))
-      {
-        request.Content = new StringContent(requestBase.RequestContent);
-      }
-
-      if (requestBase.Headers.AllKeys.Any())
-      {
-        string currentHeaderName = "";
-        try
-        {
-          foreach (var header in requestBase.Headers.AllKeys)
-          {
-            currentHeaderName = header;
-            request.Headers.Add(header, requestBase.Headers[header]);
-          }
-        }
-        catch (Exception ex)
-        {
-          _log.Error($"cannot set Header {{ \"Name\":\"${currentHeaderName}\", \"Value\":\"{requestBase.Headers?[currentHeaderName]}\" }}: {ex.Message}", ex);
-          return;
-        }
-      }
+      HttpRequestMessage request;
+      if (!TryCreateHttpRequest(requestBase, out request)) { return; }
 
       HttpResponseMessage response = null;
-
       _connection.UseClient((connectionLog, client) =>
       {
         var responseTask = client.SendAsync(request);
@@ -171,5 +127,68 @@ namespace MMHTT.Domain
       }
 
     }
+
+    private bool TryCreateHttpRequest(HttpRequestBase requestBase, out HttpRequestMessage request)
+    {
+      request = null;
+
+      if (requestBase == null)
+      {
+        _log.Error($"cannot send request: RequestRenderer returned null");
+        return false;
+      }
+
+      // also validate method content?
+      if (requestBase.Method == null)
+      {
+        _log.Error($"cannot send request: 'Method' not set");
+        return false;
+      }
+
+      Uri endpoint;
+      if (!Uri.TryCreate(requestBase.Url, UriKind.Absolute, out endpoint))
+      {
+        _log.Error($"cannot send request: 'Url' not set to a valid Uri");
+        return false;
+      }
+
+      try
+      {
+        request = new HttpRequestMessage(new HttpMethod(requestBase.Method), endpoint);
+        if (!string.IsNullOrEmpty(requestBase.RequestContent))
+        {
+          request.Content = new StringContent(requestBase.RequestContent);
+        }
+
+        if (requestBase.Headers.AllKeys.Any())
+        {
+          foreach (var header in requestBase.Headers.AllKeys)
+          {
+            request.Headers.Add(header, requestBase.Headers[header]);
+          }
+        }
+      }
+      catch (Exception ex)
+      {
+        _log.Error($"cannot create HttpRequestMessage: {ex.Message}", ex);
+        return false;
+      }
+
+      return true;
+    }
+
+    private bool ContinueRequest()
+    {
+      /// aborted?
+      if (_supervisor.CancellationToken.IsCancellationRequested)
+      {
+        Abort();
+        return false;
+      }
+
+      /// supervisor: too many requests?
+      return !_supervisor.ShouldSkipRequest;
+    }
+
   }
 }

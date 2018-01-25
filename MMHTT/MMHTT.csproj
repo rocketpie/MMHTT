@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="Configuration\AgentBehaviour.cs" />
     <Compile Include="HttpRequestBase.cs" />
     <Compile Include="ILog.cs" />

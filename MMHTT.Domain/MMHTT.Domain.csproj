@@ -39,6 +39,9 @@
     <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SolutionInfo.cs">
+      <Link>Properties\SolutionInfo.cs</Link>
+    </Compile>
     <Compile Include="Agent.cs" />
     <Compile Include="Helper\ConsoleLog.cs" />
     <Compile Include="Helper\ThresholdDispatcher.cs" />
