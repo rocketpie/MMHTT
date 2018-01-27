@@ -20,7 +20,8 @@ namespace MMHTT.Domain
     /// while this property is true, too many requests are send per second. Agents should skip a request or wait until this signal is false again.
     /// 'Important' requests may still be sent.
     /// </summary>
-    public bool ShouldSkipRequest { get; private set; }
+    public bool ShouldSkipRequest { get { return _shouldSkipRequest; } }
+    volatile bool _shouldSkipRequest;
 
     /// <summary>
     /// Agents must call this method when 
@@ -95,7 +96,7 @@ namespace MMHTT.Domain
         if (elapsedSeconds == 0) { elapsedSeconds = 1; }
 
         decimal currentRequestPerSecond = (decimal)_totalAgentRequests / elapsedSeconds;
-        ShouldSkipRequest = currentRequestPerSecond > _maxRequestPerSecond;
+        _shouldSkipRequest = currentRequestPerSecond > _maxRequestPerSecond;
         if (ShouldSkipRequest)
         {
           _log.Debug($"limiting MaxRequestPerSecond");

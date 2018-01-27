@@ -12,7 +12,10 @@ namespace MMHTT.Domain
   internal class Agent
   {
     ILog _log;
-    string _id;
+    /// <summary>
+    /// Agent
+    /// </summary>
+    public string Name { get; set; }
     AgentBehaviour _behaviour;
     ThresholdDispatcher<RequestDefinition> _requestDispatcher;
     Connection _connection;
@@ -24,25 +27,30 @@ namespace MMHTT.Domain
     /// </summary>
     NameValueCollection _session;
 
+    /// <summary>
+    /// requests done by this agent
+    /// </summary>
     int _totalRequests = 0;
     /// <summary>
     /// Started when the Agent starts
     /// </summary>
     Stopwatch _stopwatch;
+    /// <summary>
+    /// request initiating signal
+    /// </summary>
     Timer _signal;
-
 
     internal Agent(
       ILog log,
-      string id,
+      string name,
       AgentBehaviour behaviour,
       RequestDefinition[] requests,
       Connection connection,
       Supervisor supervisor,
       IRequestRenderer renderer)
     {
-      _log = new ContextLog(log, $"agent:{id}");
-      _id = id;
+      _log = new ContextLog(log, $"agent:{name}");
+      Name = name;
       _behaviour = behaviour;
       _requestDispatcher = new ThresholdDispatcher<RequestDefinition>(_log, requests, v => v.Weight);
       _connection = connection;
@@ -66,20 +74,9 @@ namespace MMHTT.Domain
       _signal.Elapsed += _signal_Elapsed;
     }
 
-    void _supervisor_Started(object sender, EventArgs e)
+    void _signal_Elapsed(object sender, ElapsedEventArgs e)
     {
-      _stopwatch = Stopwatch.StartNew();
-      _signal.Start();
-    }
-
-    void Abort()
-    {
-      _signal.Stop();
-    }
-
-    private void _signal_Elapsed(object sender, ElapsedEventArgs e)
-    {
-      if (!ContinueRequest()) { return; }
+      if (!ShouldContinueRequest()) { return; }
 
       var requestBase = _renderer.Render(_requestDispatcher.Dispatch(), _session);
 
@@ -89,31 +86,14 @@ namespace MMHTT.Domain
       HttpResponseMessage response = null;
       _connection.UseClient((connectionLog, client) =>
       {
-        var responseTask = client.SendAsync(request);
-        _supervisor.SignalRequestSent();
-        _totalRequests++;
-
-        try
-        {
-          using (response = responseTask.Result)
-          {
-            using (HttpContent content = response.Content)
-            {
-              var responseText = content.ReadAsStringAsync().Result;
-            }
-          }
-        }
-        catch (HttpRequestException hex)
-        {
-
-          _log.Warn($"6f8a054f Error: {hex.ToString()}");
-        }
-        catch (Exception ex)
-        {
-          _log.Error($"021d64f8 Error: {ex.Message}", ex);
-        }
+        response = GetHttpResponse(client, request);
       });
 
+      ExecuteOnResponse(requestBase, response);
+    }
+
+    private void ExecuteOnResponse(HttpRequestBase requestBase, HttpResponseMessage response)
+    {
       if (requestBase.OnResponse != null)
       {
         try
@@ -125,7 +105,49 @@ namespace MMHTT.Domain
           _log.Warn($"{nameof(HttpRequestBase.OnResponse)} exception: {ex.ToString()}");
         }
       }
+    }
 
+    private HttpResponseMessage GetHttpResponse(HttpClient client, HttpRequestMessage request)
+    {
+      HttpResponseMessage result = null;
+
+      var responseTask = client.SendAsync(request);
+      _supervisor.SignalRequestSent();
+      _totalRequests++;
+
+      try
+      {
+        using (result = responseTask.Result)
+        {
+          using (HttpContent content = result.Content)
+          {
+            var responseText = content.ReadAsStringAsync().Result;
+          }
+        }
+      }
+      catch (HttpRequestException hex)
+      {
+        /// TODO: get response data from http exception
+
+        _log.Warn($"6f8a054f Error: {hex.ToString()}");
+      }
+      catch (Exception ex)
+      {
+        _log.Error($"021d64f8 Error: {ex.Message}", ex);
+      }
+
+      return result;
+    }
+
+    void _supervisor_Started(object sender, EventArgs e)
+    {
+      _stopwatch = Stopwatch.StartNew();
+      _signal.Start();
+    }
+
+    void Abort()
+    {
+      _signal.Stop();
     }
 
     private bool TryCreateHttpRequest(HttpRequestBase requestBase, out HttpRequestMessage request)
@@ -177,7 +199,7 @@ namespace MMHTT.Domain
       return true;
     }
 
-    private bool ContinueRequest()
+    private bool ShouldContinueRequest()
     {
       /// aborted?
       if (_supervisor.CancellationToken.IsCancellationRequested)

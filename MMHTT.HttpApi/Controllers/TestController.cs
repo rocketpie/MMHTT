@@ -14,11 +14,11 @@ namespace MMHTT.HttpApi.Controllers
   {
     const string ASSEMBLY_PATH_SETTING = "AssemblyPath";
 
-    // GET api/values
+    [Route("api/test")]
     public IEnumerable<string> Get() => TestRepository.GetAllKeys();
 
 
-    // GET api/values/5
+    [Route("api/test/{id}")]
     public string[] Get(string id)
     {
       var test = TestRepository.Get(id);
@@ -29,7 +29,7 @@ namespace MMHTT.HttpApi.Controllers
       return data;
     }
 
-    // PUT api/values/5
+    [Route("api/test/{name}")]
     public string Put(string name, [FromBody]Config config)
     {
       string id = Guid.NewGuid().ToString("N");
@@ -44,7 +44,7 @@ namespace MMHTT.HttpApi.Controllers
       return id;
     }
 
-    // DELETE api/values/5
+    [Route("api/test/{id}")]
     public void Delete(string id)
     {
       TestRepository.Get(id).TestManager.Abort();
