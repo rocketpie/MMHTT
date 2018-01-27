@@ -102,7 +102,7 @@ namespace MMHTT.Domain
           _log.Debug($"limiting MaxRequestPerSecond");
         }
 
-        Thread.Sleep(100);
+        Task.Delay(100);
       }
     }
 

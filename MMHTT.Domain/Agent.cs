@@ -5,6 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace MMHTT.Domain
@@ -74,7 +75,7 @@ namespace MMHTT.Domain
       _signal.Elapsed += _signal_Elapsed;
     }
 
-    void _signal_Elapsed(object sender, ElapsedEventArgs e)
+    async void _signal_Elapsed(object sender, ElapsedEventArgs e)
     {
       if (!ShouldContinueRequest()) { return; }
 
@@ -84,10 +85,10 @@ namespace MMHTT.Domain
       if (!TryCreateHttpRequest(requestBase, out request)) { return; }
 
       HttpResponseMessage response = null;
-      _connection.UseClient((connectionLog, client) =>
+      await _connection.UseClient(async (connectionLog, client) => await Task.Run(async () =>
       {
-        response = GetHttpResponse(client, request);
-      });
+        response = await GetHttpResponse(client, request);
+      }));
 
       ExecuteOnResponse(requestBase, response);
     }
@@ -107,23 +108,22 @@ namespace MMHTT.Domain
       }
     }
 
-    private HttpResponseMessage GetHttpResponse(HttpClient client, HttpRequestMessage request)
+    private async Task<HttpResponseMessage> GetHttpResponse(HttpClient client, HttpRequestMessage request)
     {
       HttpResponseMessage result = null;
 
-      var responseTask = client.SendAsync(request);
-      _supervisor.SignalRequestSent();
-      _totalRequests++;
-
       try
       {
-        using (result = responseTask.Result)
+        var httpClientHandle = client.SendAsync(request);
+        _supervisor.SignalRequestSent();
+        _totalRequests++;
+
+        result = await httpClientHandle;
+        using (HttpContent content = result.Content)
         {
-          using (HttpContent content = result.Content)
-          {
-            var responseText = content.ReadAsStringAsync().Result;
-          }
+          var responseText = await content.ReadAsStringAsync();
         }
+
       }
       catch (HttpRequestException hex)
       {

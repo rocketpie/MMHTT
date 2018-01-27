@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace MMHTT.Domain.Helper
 {
@@ -16,20 +17,17 @@ namespace MMHTT.Domain.Helper
       _log = new ContextLog(log, $"con:{_id}");
     }
 
-    internal delegate void UseClientDelegate(ILog log, HttpClient client);
+    internal delegate Task UseClientDelegate(ILog log, HttpClient client);
 
-    internal void UseClient(UseClientDelegate useClient)
+    internal async Task UseClient(UseClientDelegate useClient)
     {
-      lock (_clientLock)
+      try
       {
-        try
-        {
-          useClient(_log, _client);
-        }
-        catch (Exception ex)
-        {
-          _log.Error("useclient failed", ex);
-        }
+        await useClient(_log, _client);
+      }
+      catch (Exception ex)
+      {
+        _log.Error("useclient failed", ex);
       }
     }
 
